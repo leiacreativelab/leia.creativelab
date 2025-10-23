@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base tokens */
+:root{
+  --bg:#0f0f10;
+  --card:#151518;
+  --text:#f2f2f2;
+  --muted:#a8a8ad;
+  --brand:#4E171C;
+  --brand-2:#C8A374;
+  --accent:#D8A8A2;
+}
+
+html,body { height:100% }
+html { scroll-behavior:smooth }
+body{
+  color: var(--text);
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(200,163,116,.18), transparent 60%),
+    radial-gradient(1200px 800px at 100% 10%, rgba(216,168,162,.14), transparent 60%),
+    var(--bg);
+}
+
+/* Utilities */
+.container { @apply max-w-[1100px] mx-auto px-5; }
+.section-pad { @apply py-24; }
+.lead { @apply text-muted max-w-[820px]; }
+.kicker { @apply text-xs tracking-widest uppercase text-muted; }
+.hr { @apply h-px bg-white/10 my-8; }
+
+/* Buttons */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-full font-semibold tracking-wide text-white transition;
+  background: linear-gradient(180deg, var(--brand), #2c0e12);
+  box-shadow: 0 8px 24px rgba(78,23,28,.35);
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(78,23,28,.45); }
+.btn-ghost { @apply border border-white/20 bg-transparent; }
+.btn-ghost:hover { @apply bg-white/10; }
+
+/* Cards */
+.card {
+  @apply border border-white/10 rounded-2xl p-6 transition;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,.35); }
+
+/* Custom cursor */
+.cursor {
+  position: fixed; left: 0; top: 0; width: 18px; height: 18px; border-radius: 9999px;
+  background: #fff; mix-blend-mode: difference; pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%); opacity: .8; transition: width .2s, height .2s, opacity .2s;
+}
+.cursor.grow { width: 44px; height: 44px; opacity: .9; }
+
+/* Reveal animation */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  * { transition: none !important; animation: none !important; }
+}
