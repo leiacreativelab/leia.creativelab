@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-export default function Reveal({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
+type RevealProps = HTMLAttributes<HTMLDivElement> & {
+  children: ReactNode;
   className?: string;
-}) {
+};
+
+export default function Reveal({ children, className = "", ...props }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,5 +30,9 @@ export default function Reveal({
     return () => io.disconnect();
   }, []);
 
-  return <div ref={ref} className={className}>{children}</div>;
+  return (
+    <div ref={ref} className={className} {...props}>
+      {children}
+    </div>
+  );
 }
