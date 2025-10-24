@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import Cursor from "@/components/Cursor";
 import { useState } from "react";
 
+type Status = "idle" | "sending" | "success" | "error";
+
 export default function ContactPage() {
   const [form, setForm] = useState({
     name: "",
@@ -13,11 +15,11 @@ export default function ContactPage() {
     sector: "Beauty / Skincare",
     platform: "Instagram",
   });
-  const [status, setStatus] =
-    useState<"idle" | "sending" | "success" | "error">("idle");
+
+  const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("sending");
     setErrorMsg(null);
@@ -28,16 +30,34 @@ export default function ContactPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Erreur serveur");
+
+      const data = await res.json().catch(() => ({}));
+
+      // 1) Succès normal
+      if (res.ok && data?.ok) {
+        setStatus("success");
+        setForm((f) => ({ ...f, message: "" }));
+        return;
       }
-      setStatus("success");
+
+      // 2) Cas sandbox Resend (warning mais mail bien délivré)
+      const sandboxMsg =
+        typeof data?.error === "string" &&
+        data.error.includes("You can only send testing emails");
+
+      if (sandboxMsg || data?.warning === "resend-sandbox") {
+        setStatus("success");
+        setForm((f) => ({ ...f, message: "" }));
+        return;
+      }
+
+      // 3) Vraie erreur
+      throw new Error(data?.error || "Erreur serveur");
     } catch (err: any) {
       setErrorMsg(err?.message || "Impossible d’envoyer le message.");
       setStatus("error");
     }
-  };
+  }
 
   return (
     <>
@@ -55,7 +75,7 @@ export default function ContactPage() {
           <div className="card mt-6">
             {status === "success" ? (
               <div className="text-lg">
-                ✅ Merci ! Votre message a bien été envoyé. Un email de confirmation vous a été adressé.
+                ✅ Merci ! Votre message a bien été envoyé. Je vous réponds rapidement.
               </div>
             ) : (
               <form className="grid gap-3" onSubmit={handleSubmit}>
@@ -66,6 +86,7 @@ export default function ContactPage() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
+
                 <input
                   type="email"
                   required
@@ -74,6 +95,7 @@ export default function ContactPage() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
+
                 <textarea
                   required
                   placeholder="Parlez-moi de votre marque, vos challenges, vos objectifs…"
@@ -81,6 +103,7 @@ export default function ContactPage() {
                   value={form.message}
                   onChange={(e) => setForm({ ...form, message: e.target.value })}
                 />
+
                 <div className="grid md:grid-cols-3 gap-3">
                   <select
                     className="bg-[#0f0f10] border border-white/15 rounded-xl px-3 py-2"
@@ -92,6 +115,7 @@ export default function ContactPage() {
                     <option>Partenariat annuel</option>
                     <option>Autre / sur-mesure</option>
                   </select>
+
                   <select
                     className="bg-[#0f0f10] border border-white/15 rounded-xl px-3 py-2"
                     value={form.sector}
@@ -102,6 +126,7 @@ export default function ContactPage() {
                     <option>Fashion / Lifestyle</option>
                     <option>Autre secteur</option>
                   </select>
+
                   <select
                     className="bg-[#0f0f10] border border-white/15 rounded-xl px-3 py-2"
                     value={form.platform}
@@ -118,9 +143,7 @@ export default function ContactPage() {
                 </button>
 
                 {status === "error" && (
-                  <p className="text-red-400 text-sm mt-2">
-                    ❌ {errorMsg}
-                  </p>
+                  <p className="text-red-400 text-sm mt-2">❌ {errorMsg}</p>
                 )}
               </form>
             )}
