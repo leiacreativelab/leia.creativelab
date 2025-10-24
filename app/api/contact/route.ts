@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const { name, email, message, offer, sector, platform } = await req.json();
 
-    // Email envoyé à toi (Leïa)
+    // Email pour toi
     await resend.emails.send({
       from: "Contact Form <onboarding@resend.dev>",
       to: "leia.creativelab@gmail.com",
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       `,
     });
 
-    // Accusé de réception automatique envoyé à la personne
+    // Accusé de réception pour l’expéditeur
     await resend.emails.send({
       from: "Leia Creative Lab <onboarding@resend.dev>",
       to: email,
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(error);
+    console.error("CONTACT_API_ERROR:", error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

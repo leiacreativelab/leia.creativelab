@@ -13,21 +13,30 @@ export default function ContactPage() {
     sector: "Beauty / Skincare",
     platform: "Instagram",
   });
-
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [status, setStatus] =
+    useState<"idle" | "sending" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("sending");
+    setErrorMsg(null);
 
-    const res = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    if (res.ok) setStatus("success");
-    else setStatus("error");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "Erreur serveur");
+      }
+      setStatus("success");
+    } catch (err: any) {
+      setErrorMsg(err?.message || "Impossible d’envoyer le message.");
+      setStatus("error");
+    }
   };
 
   return (
@@ -46,11 +55,10 @@ export default function ContactPage() {
           <div className="card mt-6">
             {status === "success" ? (
               <div className="text-lg">
-                ✅ Merci ! Votre message a bien été envoyé.  
-                Vous allez recevoir un e-mail de confirmation dans quelques instants.
+                ✅ Merci ! Votre message a bien été envoyé. Un email de confirmation vous a été adressé.
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="grid gap-3">
+              <form className="grid gap-3" onSubmit={handleSubmit}>
                 <input
                   required
                   placeholder="Votre nom"
@@ -105,17 +113,13 @@ export default function ContactPage() {
                   </select>
                 </div>
 
-                <button
-                  className="btn w-max"
-                  type="submit"
-                  disabled={status === "sending"}
-                >
+                <button className="btn w-max" type="submit" disabled={status === "sending"}>
                   {status === "sending" ? "Envoi en cours..." : "Réserver un échange gratuit"}
                 </button>
 
                 {status === "error" && (
                   <p className="text-red-400 text-sm mt-2">
-                    ❌ Une erreur est survenue. Veuillez réessayer.
+                    ❌ {errorMsg}
                   </p>
                 )}
               </form>
