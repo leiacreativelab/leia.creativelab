@@ -1,43 +1,62 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const runtime = "nodejs";            // éviter Edge
+export const dynamic = "force-dynamic";     // pas de pré-rendu
 
-export async function POST(req: Request) {
+function getResend() {
+  const key = process.env.RESEND_API_KEY;
+  // Ne jette PAS d'erreur au chargement du module: on check à l'exécution.
+  return new Resend(key);
+}
+
+export async function POST(req: NextRequest) {
   try {
-    const { name, email, message, offer, sector, platform } = await req.json();
+    const { name, email, message } = await req.json();
 
-    await resend.emails.send({
-      from: "Contact Form <onboarding@resend.dev>",
-      to: "leia.creativelab@gmail.com",
-      subject: `📩 Nouveau message de ${name}`,
-      reply_to: email,
+    if (!process.env.RESEND_API_KEY) {
+      // Réponse propre si la clé manque en runtime
+      return NextResponse.json(
+        { ok: false, error: "RESEND_API_KEY manquante côté serveur" },
+        { status: 500 }
+      );
+    }
+
+    const resend = getResend();
+
+    // --- Mail admin
+    const { error: adminErr } = await resend.emails.send({
+      from: process.env.RESEND_FROM!,      // ex: "contact@ton-domaine.com"
+      to: process.env.RESEND_TO!,          // ta boîte
+      replyTo: email,                      // ✅ (camelCase)
+      subject: `📩 Nouveau message — ${name ?? "Anonyme"}`,
       html: `
-        <h2>Nouveau message depuis le site</h2>
-        <p><strong>Nom :</strong> ${name}</p>
-        <p><strong>Email :</strong> ${email}</p>
-        <p><strong>Offre :</strong> ${offer}</p>
-        <p><strong>Secteur :</strong> ${sector}</p>
-        <p><strong>Plateforme :</strong> ${platform}</p>
-        <p><strong>Message :</strong><br/>${message}</p>
+        <h2>Nouveau message</h2>
+        <p><strong>Nom :</strong> ${name ?? "—"}</p>
+        <p><strong>Email :</strong> ${email ?? "—"}</p>
+        <p><strong>Message :</strong></p>
+        <p>${(message ?? "").replace(/\n/g, "<br/>")}</p>
       `,
     });
+    if (adminErr) throw adminErr;
 
-    await resend.emails.send({
-      from: "Leia Creative Lab <onboarding@resend.dev>",
-      to: email,
-      subject: "Merci pour votre message 💌",
-      html: `
-        <h2>Merci ${name} !</h2>
-        <p>Votre message a bien été reçu par <strong>Leïa Creative Lab</strong>.</p>
-        <p>Je vous réponds sous 48 h avec des pistes concrètes pour votre stratégie digitale.</p>
-        <p style="margin-top:16px;">✨ À très vite,<br/>Leïa</p>
-      `,
-    });
+    // --- Accusé de réception utilisateur (optionnel)
+    if (email) {
+      const { error: userErr } = await resend.emails.send({
+        from: process.env.RESEND_FROM!,
+        to: email,
+        subject: "✅ Nous avons bien reçu votre message",
+        text:
+          `Bonjour ${name ?? ""},\n\n` +
+          `Merci pour votre message. Nous revenons vers vous très vite.\n\n` +
+          `— Leïa Creative Lab`,
+      });
+      if (userErr) throw userErr;
+    }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("CONTACT_API_ERROR:", error);
-    return NextResponse.json({ success: false }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    console.error("Email error:", e);
+    return NextResponse.json({ ok: false, error: e?.message ?? "error" }, { status: 500 });
   }
 }

@@ -66,3 +66,14 @@ body{
 @media (prefers-reduced-motion: reduce){
   * { transition: none !important; animation: none !important; }
 }
+
+body {
+  background: radial-gradient(
+    circle at 50% 0%,
+    #7A223A 0%,        /* Pantone 209 CP - bordeaux principal */
+    #1A0C10 60%,       /* Transition douce (bordeaux foncé / prune) */
+    #050505 100%       /* Noir profond et uniforme */
+  );
+  background-attachment: fixed; /* Le dégradé reste fluide pendant le scroll */
+  color: white;
+}
