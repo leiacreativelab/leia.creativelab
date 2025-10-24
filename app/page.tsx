@@ -115,7 +115,7 @@ export default function HomePage() {
       </Section>
 
       {/* SECTION CRÉDIBILITÉ */}
-      <Section title="Pourquoi me faire confiance alors que je démarre ?">
+      <Section title="Pourquoi me faire confiance ?">
         <div className="grid gap-4 md:grid-cols-2">
           <Reveal className="card">
             <h3 className="text-xl font-bold">Native digitale</h3>

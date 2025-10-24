@@ -15,7 +15,7 @@ export default function Portfolio(){
 
       <Section
         title="Portfolio & Analyses"
-        lead="Sélection de projets et décryptages publics : pourquoi certaines campagnes cartonnent — et comment adapter leurs mécaniques à votre marque."
+        lead="Sélection de projets et décryptages publics : pourquoi certaines campagnes cartonnent et comment adapter leurs mécaniques à votre marque."
       >
         <div className="grid grid-cols-12 gap-5">
           {cases.map(item => (
