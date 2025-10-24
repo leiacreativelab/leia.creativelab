@@ -7,7 +7,6 @@ export async function POST(req: Request) {
   try {
     const { name, email, message, offer, sector, platform } = await req.json();
 
-    // Email pour toi
     await resend.emails.send({
       from: "Contact Form <onboarding@resend.dev>",
       to: "leia.creativelab@gmail.com",
@@ -24,7 +23,6 @@ export async function POST(req: Request) {
       `,
     });
 
-    // Accusé de réception pour l’expéditeur
     await resend.emails.send({
       from: "Leia Creative Lab <onboarding@resend.dev>",
       to: email,
